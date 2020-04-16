@@ -33,6 +33,7 @@ def print_headings (tr):
 
     x = lt.pop()               # Last list member is not needed
 
+    print()
     for l, fl in zip(lt, fls): # Print first line of lables
         print(f'{str(l[0]).strip(" "):>{fl}}', end='')
     print()
@@ -41,34 +42,35 @@ def print_headings (tr):
     print()
 
 #
+# Remove the first element from a bs4.element.ResultSet variable
+#
+def remove_first_element(trs):
+    trs.reverse()
+    trs.pop()
+    trs.reverse()
+
+#
 # Extract data and print it
 #
 def print_data (trs):
-    skip = True
+    remove_first_element(trs)
     for tr in trs:
-        if skip:                   # First row contains labels, so skip it
-            skip = False
-            continue
         tds = tr.find_all('td')    # Find all the cells (columns) in a row
         for td, fl in zip(tds, fls):
             val = str(td.text).strip('\n').strip(' ')
             print(f'{val:>{fl}}', end="")
         print()
 
+def retrieve_and_print():
+    soup = retrieve_html()
+    for day in 'today', 'yesterday':
+        id_string = 'nav-' + day
+        attrs_value = id_string + '-tab'
+        day_div = soup.find('div', id=id_string, attrs={"aria-labelledby": attrs_value})
+        trs = day_div.find_all('tr')
+        print_headings (BeautifulSoup(str(trs[0]), 'html.parser'))
+        print_data (trs)
 
 
-if __name__ != "__main__":
-    exit()
-
-
-soup = retrieve_html()
-
-# There is data for today and yesterday. Retrieve all the "divs" for each and process
-# one at a time.
-for day in 'today', 'yesterday':
-    id_string = 'nav-' + day
-    attrs_value = id_string + '-tab'
-    day_div = soup.find('div', id=id_string, attrs={"aria-labelledby": attrs_value})
-    trs = day_div.find_all('tr')
-    print_headings (BeautifulSoup(str(trs[0]), 'html.parser'))
-    print_data (trs)
+if __name__ == "__main__":
+    retrieve_and_print()
